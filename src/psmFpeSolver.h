@@ -5,8 +5,6 @@
 #ifndef PSMFPESOLVER
 #define PSMFPESOLVER
 
-#include"sim_tools/utility.h"
-#include"silo.h"
 #include<blitz/array.h>
 #include<complex>
 #include<fftw3.h>

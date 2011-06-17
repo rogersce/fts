@@ -7,12 +7,18 @@ project(FTS)
 
 option(ENABLE_STATIC "Build static (.a) library" ON)
 
+set(CMAKE_VERBOSE_MAKEFILE off)
+include_directories($ENV{HOME}/include src)
+link_directories($ENV{HOME}/lib)
 file(GLOB SRCS src/*.cpp)
 file(GLOB HEADERS src/*.h)
 file(GLOB SCRIPTS scripts/*.py)
 
 add_library(fts SHARED ${SRCS})
 target_link_libraries(fts cnpy)
+target_link_libraries(fts fftw3)
+find_library(silo NAMES "silo" "siloh5" PATHS ENV LD_LIBRARY_PATH)
+target_link_libraries(fts ${silo})
 install(TARGETS "fts" LIBRARY DESTINATION lib PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
 
 if(ENABLE_STATIC)

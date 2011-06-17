@@ -3,7 +3,6 @@
 //license available in LICENSE file, or at http://www.opensource.org/licenses/mit-license.php
 
 #include"psmFpeSolver.h"
-#include<iostream>
 #include<cmath>
 
 #define PI 3.14159265
