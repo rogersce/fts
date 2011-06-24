@@ -25,9 +25,9 @@ public:
    psmFpeSolver(Params _p);
    ~psmFpeSolver();
 
-   void update(const blitz::Array<double,3>* ext_field = 0);
+   void update(const blitz::Array<std::complex<double>,3>* ext_field = 0);
    blitz::Array<std::complex<double>,3>& get_uk();
-   blitz::Array<double,3> u;   
+   blitz::Array<std::complex<double>,3> u;   
 
 private:
 

@@ -7,6 +7,7 @@
 
 #include"psmFpeSolver.h"
 #include<blitz/array.h>
+#include<complex>
 
 class densityOperator
 {
@@ -21,7 +22,7 @@ public:
    densityOperator(Params _p);
    ~densityOperator();
 
-   blitz::Array<double,3> solve(const blitz::Array<double,3>* ext_field = 0);
+   blitz::Array<std::complex<double>,3> solve(const blitz::Array<std::complex<double>,3>* ext_field = 0);
    
 private:
 
@@ -29,7 +30,7 @@ private:
 
    psmFpeSolver psm;
 
-   blitz::Array<double,3>* q;
+   blitz::Array<std::complex<double>,3>* q;
 };
 
 #endif
