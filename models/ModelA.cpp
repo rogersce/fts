@@ -32,6 +32,7 @@ int Ns = 64;
 int Nx = 32;
 int Ny = 32;
 int Nz = 32;
+double Npol = 100;
 double u0 = 1.0;
 
 MTRand rng;
@@ -50,6 +51,7 @@ void cl_parse(int argc, char * argv[])
         else if(strcmp(argv[i],"-Nx")==0)    Nx = atoi(argv[i+1]);
         else if(strcmp(argv[i],"-Ny")==0)    Ny = atoi(argv[i+1]);
         else if(strcmp(argv[i],"-Nz")==0)    Nz = atoi(argv[i+1]);
+        else if(strcmp(argv[i],"-Npol")==0)  Npol = atoi(argv[i+1]);
         else if(strcmp(argv[i],"-u0")==0)    u0 = atof(argv[i+1]);
         else if(strcmp(argv[i],"-nsteps")==0)    nsteps = atoi(argv[i+1]);
         else if(strcmp(argv[i],"-REPORT")==0)    REPORT = atoi(argv[i+1]);
@@ -76,6 +78,7 @@ void print_stats()
     cout<<"Nx:\t"<<Nx<<"\n";
     cout<<"Ny:\t"<<Ny<<"\n";
     cout<<"Nz:\t"<<Nz<<"\n";
+    cout<<"Npol:\t"<<Npol<<"\n";
     cout<<"u0:\t"<<u0<<"\n";
     cout<<"dt:\t"<<dt<<"\n";
     cout<<endl<<endl;
@@ -104,9 +107,21 @@ int saveSilo(DBfile* db)
     err += DBMkDir(db,"/ModelA/data");
     err += DBSetDir(db,"/ModelA/data");
     err += quadMesh2Silo(db, Nx, Ny, Nz, "Mesh",L/double(Nx));
-    err += quadVar2Silo(db,real(mu).data(),Nx,Ny,Nz,"real_mu","Mesh");
-    err += quadVar2Silo(db,real(dens).data(),Nx,Ny,Nz,"real_density","Mesh");
+    
+    Array<double,3> data(dens.shape());
 
+    data = real(dens);
+    err += quadVar2Silo(db,data.data(),Nx,Ny,Nz,"real_dens","Mesh");
+    
+    data = imag(dens);
+    err += quadVar2Silo(db,data.data(),Nx,Ny,Nz,"imag_dens","Mesh");
+
+    data = real(mu);
+    err += quadVar2Silo(db,data.data(),Nx,Ny,Nz,"real_mu","Mesh");
+    
+    data = imag(mu);
+    err += quadVar2Silo(db,data.data(),Nx,Ny,Nz,"imag_mu","Mesh");
+    
     return err;  
 }
 
@@ -137,6 +152,8 @@ int main(int argc, char* argv[])
         {
             timer();
             cout<<"% Done: "<<fixed<<setprecision(5)<<counter<<"/"<<nsteps<<"\n";
+            cout<<"Total number real particles: "<<sum(real(dens))<<"\n";
+            cout<<"Total number imag particles: "<<sum(imag(dens))<<"\n";
         }
 
         if(counter % PICTURE == 0)
@@ -145,7 +162,7 @@ int main(int argc, char* argv[])
             if(err) std::cout<<"Warning: writeSilo returned errors!\n";
         }
 
-        dens = densOp->solve(&mu); 
+        dens = Npol*densOp->solve(&mu); 
         mu += dt*(dens - mu/u0);
     }
 

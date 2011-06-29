@@ -40,6 +40,7 @@ double Nb = 1;
 
 MTRand rng;
 Array<complex<double>,3> wA(shape(Nz,Ny,Nx)), wB(shape(Nz,Ny,Nx));
+densityOperator *densOpA, *densOpB;
 
 void cl_parse(int argc, char * argv[])
 {
@@ -110,13 +111,26 @@ void initRandom(Array<complex<double>,3>& arr)
 
 int saveSilo(DBfile* db)
 {
-    //save mu and densOp here
     int err = DBMkDir(db,"/ModelC");
     err += DBMkDir(db,"/ModelC/data");
     err += DBSetDir(db,"/ModelC/data");
     err += quadMesh2Silo(db, Nx, Ny, Nz, "Mesh",L/double(Nx));
-    err += quadVar2Silo(db,real(wA).data(),Nx,Ny,Nz,"real_wA","Mesh");
-    err += quadVar2Silo(db,real(wB).data(),Nx,Ny,Nz,"real_wB","Mesh");
+
+    Array<double,3> data(wA.shape());
+
+    Array<complex<double>,3> dens = densOpA->solve(&wA);
+    data = real(dens);
+    err += quadVar2Silo(db,data.data(),Nx,Ny,Nz,"real_densA","Mesh");
+
+    data = imag(dens);
+    err += quadVar2Silo(db,data.data(),Nx,Ny,Nz,"imag_densA","Mesh");
+    
+    dens = densOpB->solve(&wB);
+    data = real(dens);
+    err += quadVar2Silo(db,data.data(),Nx,Ny,Nz,"real_densB","Mesh");
+
+    data = imag(dens);
+    err += quadVar2Silo(db,data.data(),Nx,Ny,Nz,"imag_densB","Mesh");
 
     return err;  
 }
@@ -144,9 +158,9 @@ int main(int argc, char* argv[])
     pB.Ny = Ny;
     pB.Nx = Nx;
 
-    densityOperator densOpA(pA);
-    densityOperator densOpB(pB);
-    
+    densOpA = new densityOperator(pA);
+    densOpB = new densityOperator(pB);
+
     initRandom(wA);
     initRandom(wB);
 
@@ -169,8 +183,8 @@ int main(int argc, char* argv[])
 
         Array<complex<double>,3> factor1((0.5*rho_0/chi_inv)*(wB - wA));
         
-        wA += dt*( Na*densOpA.solve(&wA) - factor1 );
-        wB += dt*( Nb*densOpB.solve(&wB) + factor1 );
+        wA += dt*( Na*densOpA->solve(&wA) - factor1 );
+        wB += dt*( Nb*densOpB->solve(&wB) + factor1 );
     }
 
     return 0;
