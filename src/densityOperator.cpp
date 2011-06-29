@@ -41,13 +41,14 @@ Array<complex<double>,3> densityOperator::solve(const Array<complex<double>,3>* 
       q[s+1] = psm.u;
    }
    
-   //do Simpson's rule on the propagator solution at each point in space
+   //do composite Simpson's rule on the propagator solution at each point in space
    Array<complex<double>,3> densOp(q[0].shape());
    densOp = (2.0*q[0]*q[p.Ns]);
    for(int s = 1;s < p.Ns; s++) densOp += (s & 1 ? 4.0 : 2.0 )*q[s]*q[p.Ns - s];
    
+   //divide by VQw and also do the normalization needed from simpson's rule formula
    complex<double> VQw = psm.get_uk()(0,0,0);
-   densOp *= 1.0/(3.0*p.Ns*VQw);
-   
+   densOp *= 1.0/(3.0*p.Ns*VQw); 
+  
    return densOp;
 }
